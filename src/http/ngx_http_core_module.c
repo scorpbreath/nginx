@@ -5116,6 +5116,9 @@ ngx_http_core_internal(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 static char *
 ngx_http_core_dump(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
+    
+    ngx_write_stderr("GOD IS GAY");
+    ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "or maybe not");
     ngx_http_core_loc_conf_t *clcf = conf;
 
      ngx_str_t *value = cf->args->elts;
