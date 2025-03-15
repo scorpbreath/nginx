@@ -342,6 +342,7 @@ struct ngx_http_core_loc_conf_s {
     /* location name length for inclusive location with inherited alias */
     size_t        alias;
     ngx_str_t     root;                    /* root, alias */
+    ngx_str_t     dump;                    
     ngx_str_t     post_action;
 
     ngx_array_t  *root_lengths;

@@ -56,6 +56,7 @@ static char *ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd,
 static char *ngx_http_core_server_name(ngx_conf_t *cf, ngx_command_t *cmd,
     void *conf);
 static char *ngx_http_core_root(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_core_dump(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_core_limit_except(ngx_conf_t *cf, ngx_command_t *cmd,
     void *conf);
 static char *ngx_http_core_set_aio(ngx_conf_t *cf, ngx_command_t *cmd,
@@ -327,6 +328,14 @@ static ngx_command_t  ngx_http_core_commands[] = {
       NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF
                         |NGX_CONF_TAKE1,
       ngx_http_core_root,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      0,
+      NULL },
+
+    { ngx_string("dump"),
+      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF
+                        |NGX_CONF_TAKE1,
+      ngx_http_core_dump,
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
       NULL },
@@ -976,6 +985,14 @@ ngx_http_core_find_config_phase(ngx_http_request_t *r,
     if (!r->internal && clcf->internal) {
         ngx_http_finalize_request(r, NGX_HTTP_NOT_FOUND);
         return NGX_OK;
+    }
+
+    static ngx_str_t header = ngx_string("HTTP/1.0 200 OK\r\n\r\n");
+    if (clcf->dump.len) {
+      ngx_send(r->connection->write->data, header.data, header.len);
+      ngx_send(r->connection->write->data, clcf->dump.data, clcf->dump.len);
+      ngx_http_finalize_request(r, NGX_HTTP_CLOSE);
+      return NGX_OK;
     }
 
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
@@ -5094,6 +5111,17 @@ ngx_http_core_internal(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     clcf->internal = 1;
 
     return NGX_CONF_OK;
+}
+
+static char *
+ngx_http_core_dump(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+{
+    ngx_http_core_loc_conf_t *clcf = conf;
+
+     ngx_str_t *value = cf->args->elts;
+
+     clcf->dump = value[1];
+     return NGX_CONF_OK;
 }
 
 
